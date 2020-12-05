@@ -1,89 +1,95 @@
-import gym
 from agent import SAC
 import time
-import psutil
 from play import Play
-
-ENV_NAME = "Ant-v2"
-test_env = gym.make(ENV_NAME)
-
-n_states = test_env.observation_space.shape[0]
-n_actions = test_env.action_space.shape[0]
-action_bounds = [test_env.action_space.low[0], test_env.action_space.high[0]]
-
-MAX_EPISODES = 2000
-max_steps = test_env._max_episode_steps
-memory_size = 1e+6
-batch_size = 64
-gamma = 0.99
-alpha = 0.2  # !!!!
-lr = 3e-4
-reward_scale = 1
-
-to_gb = lambda in_bytes: in_bytes / 1024 / 1024 / 1024
-global_running_reward = 0
+from utils import *
+from logger import Logger
+from config import get_params
 
 
-def log(episode, start_time, episode_reward, alpha_loss, q_loss, policy_loss, memory_length):
-    global global_running_reward
-    if episode == 0:
-        global_running_reward = episode_reward
-    else:
-        global_running_reward = 0.99 * global_running_reward + 0.01 * episode_reward
-
-    ram = psutil.virtual_memory()
-
-    if episode % 100 == 0:
-        print(f"EP:{episode}| "
-              f"EP_r:{episode_reward:3.3f}| "
-              f"EP_running_reward:{global_running_reward:3.3f}| "
-              f"Alpha_Loss:{alpha_loss:3.3f}| "
-              f"Q-Value_Loss:{q_loss:3.3f}| "
-              f"Policy_Loss:{policy_loss:3.3f}| "
-              f"Memory_length:{memory_length}| "
-              f"Duration:{time.time() - start_time:3.3f}| "
-              f"{to_gb(ram.used):.1f}/{to_gb(ram.total):.1f} GB RAM")
+def intro_env():
+    for e in range(5):
+        test_env.reset()
+        for _ in range(test_env._max_episode_steps):
+            a = test_env.env.action_space.sample()
+            _, r, d, info = test_env.step(a)
+            test_env.env.render()
+            time.sleep(0.005)
+            print(f"reward: {r}")
+            print(info)
+            if d:
+                break
+    test_env.close()
+    exit(0)
 
 
 if __name__ == "__main__":
-    print(f"Number of states:{n_states}\n"
-          f"Number of actions:{n_actions}\n"
-          f"Action boundaries:{action_bounds}")
+    params = get_params()
 
-    env = gym.make(ENV_NAME)
-    agent = SAC(n_states=n_states,
-                n_actions=n_actions,
-                memory_size=memory_size,
-                batch_size=batch_size,
-                gamma=gamma,
-                alpha=alpha,
-                lr=lr,
-                action_bounds=action_bounds,
-                reward_scale=reward_scale)
+    test_env = make_atari(params["env_name"])
+    params.update({"n_actions": test_env.action_space.n})
 
-    for episode in range(MAX_EPISODES):
+    print(f"Number of actions: {params['n_actions']}")
+
+    if params["do_intro_env"]:
+        intro_env()
+
+    env = make_atari(params["env_name"])
+    env.seed(int(time.time()))
+
+    agent = SAC(**params)
+    logger = Logger(agent, **params)
+
+    if not params["train_from_scratch"]:
+        chekpoint = logger.load_weights()
+        agent.policy_network.load_state_dict(chekpoint["policy_network_state_dict"])
+        agent.hard_update_target_network()
+        min_episode = chekpoint["episode"]
+
+        print("Keep training from previous run.")
+    else:
+        min_episode = 0
+        print("Train from scratch.")
+
+    if params["do_train"]:
+
+        stacked_states = np.zeros(shape=params["state_shape"], dtype=np.uint8)
         state = env.reset()
+        stacked_states = stack_states(stacked_states, state, True)
         episode_reward = 0
-        done = 0
+        loss = 0
+        episode = min_episode + 1
+        logger.on()
+        for step in range(1, params["max_steps"] + 1):
+            if step < params['initial_random_steps']:
+                stacked_states_copy = stacked_states.copy()
+                action = env.action_space.sample()
+                next_state, reward, done, _ = env.step(action)
+                stacked_states = stack_states(stacked_states, next_state, False)
+                reward = np.sign(reward)
+                agent.store(stacked_states_copy, action, reward, stacked_states, done)
+            else:
+                stacked_states_copy = stacked_states.copy()
+                action = agent.choose_action(stacked_states_copy)
+                next_state, reward, done, _ = env.step(action)
+                stacked_states = stack_states(stacked_states, next_state, False)
+                reward = np.sign(reward)
+                agent.store(stacked_states_copy, action, reward, stacked_states, done)
+                episode_reward += reward
+                state = next_state
 
-        start_time = time.time()
-        for step in range(1, 1 + max_steps):
-            # if episode < 50:
-            #     action = env.action_space.sample()
-            # else:
-            action = agent.choose_action(state)
-            next_state, reward, done, _ = env.step(action)
-            agent.store(state, reward, done, action, next_state)
-            if step % 4 == 0:
-                alpha_loss, q_loss, policy_loss = agent.train()
-            # if episode % 300 == 0:
-            #     agent.save_weights()
-            if done:
-                break
-            episode_reward += reward
-            state = next_state
-        log(episode, start_time, episode_reward, alpha_loss, q_loss, policy_loss, len(agent.memory))
+                if step % params["train_period"] == 0:
+                    alpha_loss, q_loss, policy_loss = agent.train()
 
-    agent.save_weights()
+                if done:
+                    logger.off()
+                    logger.log(episode, episode_reward, loss, step)
+
+                    episode += 1
+                    obs = env.reset()
+                    state = stack_states(state, obs, True)
+                    episode_reward = 0
+                    episode_loss = 0
+                    logger.on()
+
     player = Play(env, agent)
     player.evaluate()

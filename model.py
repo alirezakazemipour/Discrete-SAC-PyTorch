@@ -18,7 +18,7 @@ class QValueNetwork(nn.Module, ABC):
 
         self.conv1 = nn.Conv2d(in_channels=c, out_channels=32, kernel_size=8, stride=4, padding=0)
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=0)
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=0)
+        self.conv3 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=0)
 
         conv1_out_w = conv_shape(w, 8, 4)
         conv1_out_h = conv_shape(h, 8, 4)
@@ -63,7 +63,7 @@ class PolicyNetwork(nn.Module, ABC):
 
         self.conv1 = nn.Conv2d(in_channels=c, out_channels=32, kernel_size=8, stride=4, padding=0)
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=0)
-        self.conv2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=0)
+        self.conv3 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=0)
 
         conv1_out_w = conv_shape(w, 8, 4)
         conv1_out_h = conv_shape(h, 8, 4)
@@ -96,5 +96,7 @@ class PolicyNetwork(nn.Module, ABC):
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc(x))
         logits = self.logits(x)
-        probs = F.softmax(logits, dim=-1)
-        return Categorical(probs)
+        probs = F.softmax(logits, -1)
+        z = probs == 0.0
+        z = z.float() * 1e-8
+        return Categorical(probs), probs + z
