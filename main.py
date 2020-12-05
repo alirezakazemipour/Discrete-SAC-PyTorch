@@ -56,7 +56,7 @@ if __name__ == "__main__":
         state = env.reset()
         stacked_states = stack_states(stacked_states, state, True)
         episode_reward = 0
-        loss = 0
+        alpha_loss, q_loss, policy_loss = 0, 0, 0
         episode = min_episode + 1
         logger.on()
         for step in range(1, params["max_steps"] + 1):
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
                 if done:
                     logger.off()
-                    logger.log(episode, episode_reward, loss, step)
+                    logger.log(episode, episode_reward, alpha_loss, q_loss, policy_loss , step)
 
                     episode += 1
                     obs = env.reset()

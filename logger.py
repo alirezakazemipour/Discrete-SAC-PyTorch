@@ -17,7 +17,9 @@ class Logger:
         self.start_time = 0
         self.duration = 0
         self.running_reward = 0
-        self.running_loss = 0
+        self.running_alpha_loss = 0
+        self.running_q_loss = 0
+        self.running_policy_loss = 0
         self.max_episode_reward = -np.inf
         self.moving_avg_window = 10
         self.moving_weights = np.repeat(1.0, self.moving_avg_window) / self.moving_avg_window
@@ -47,15 +49,18 @@ class Logger:
 
     def log(self, *args):
 
-        episode, episode_reward, loss, step = args
+        episode, episode_reward, alpha_loss, q_loss, policy_loss, step = args
 
         self.max_episode_reward = max(self.max_episode_reward, episode_reward)
 
         if self.running_reward == 0:
             self.running_reward = episode_reward
-            self.running_loss = loss
+            self.running_alpha_loss = alpha_loss
+            self.running_q_loss = q_loss
         else:
-            self.running_loss = 0.99 * self.running_loss + 0.01 * loss
+            self.running_alpha_loss = 0.99 * self.running_alpha_loss + 0.01 * alpha_loss
+            self.running_q_loss = 0.99 * self.running_q_loss + 0.01 * q_loss
+            self.running_policy_loss = 0.99 * self.running_policy_loss + 0.01 * policy_loss
             self.running_reward = 0.99 * self.running_reward + 0.01 * episode_reward
 
         self.last_10_ep_rewards.append(int(episode_reward))
@@ -74,8 +79,11 @@ class Logger:
             print("EP:{}| "
                   "EP_Reward:{:.2f}| "
                   "EP_Running_Reward:{:.3f}| "
-                  "Running_loss:{:.3f}| "
-                  "EP_Duration:{:3.3f}| "
+                  "Alpha_Loss:{:.3f}| "
+                  "Q-Loss:{:.3f}| "
+                  "Policy_Loss:{:.3f}| "
+                  "EP_Duration:{:.3f}| "
+                  "Alpha:{:.3f}| "
                   "Memory_Length:{}| "
                   "Mean_steps_time:{:.3f}| "
                   "{:.1f}/{:.1f} GB RAM| "
@@ -83,8 +91,11 @@ class Logger:
                   "Step:{}".format(episode,
                                    episode_reward,
                                    self.running_reward,
-                                   self.running_loss,
+                                   self.running_alpha_loss,
+                                   self.running_q_loss,
+                                   self.running_policy_loss,
                                    self.duration,
+                                   self.agent.alpha.item(),
                                    len(self.agent.memory),
                                    self.duration / (step / episode),
                                    self.to_gb(memory.used),
@@ -97,7 +108,10 @@ class Logger:
             writer.add_scalar("Episode running reward", self.running_reward, episode)
             writer.add_scalar("Max episode reward", self.max_episode_reward, episode)
             writer.add_scalar("Moving average reward of the last 10 episodes", last_10_ep_rewards, episode)
-            writer.add_scalar("Loss", loss, episode)
+            writer.add_scalar("Alpha Loss", alpha_loss, episode)
+            writer.add_scalar("Q-Loss", q_loss, episode)
+            writer.add_scalar("Policy Loss", policy_loss, episode)
+            writer.add_scalar("Alpha", self.agent.alpha.item(), episode)
 
     def save_weights(self, episode, ):
         torch.save({"online_model_state_dict": self.agent.policy_network.state_dict(),
