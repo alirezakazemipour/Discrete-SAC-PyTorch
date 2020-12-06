@@ -107,7 +107,8 @@ class SAC:
             policy_loss.backward()
             self.policy_opt.step()
 
-            alpha_loss = -(probs.detach() * self.log_alpha * (log_probs.detach() + self.entropy_target)).sum(-1).mean()
+            log_probs = (probs * log_probs).sum(-1)
+            alpha_loss = -(self.log_alpha * (log_probs.detach() + self.entropy_target)).mean()
 
             self.alpha_opt.zero_grad()
             alpha_loss.backward()

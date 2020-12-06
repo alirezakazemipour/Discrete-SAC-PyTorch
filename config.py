@@ -15,7 +15,7 @@ def get_params():
     parser.add_argument("--train_from_scratch", action="store_false",
                         help="The flag determines whether to train from scratch or continue previous tries.")
 
-    parser.add_argument("--do_intro_env", action="store_false",
+    parser.add_argument("--do_intro_env", action="store_true",
                         help="Only introduce the environment then close the program.")
     parser_params = parser.parse_args()
 
