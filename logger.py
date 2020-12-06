@@ -133,7 +133,7 @@ class Logger:
         self.agent.policy_network.load_state_dict(checkpoint["policy_network_state_dict"])
         self.agent.q_value_network1.load_state_dict(checkpoint["q_value_network1_state_dict"])
         self.agent.q_value_network2.load_state_dict(checkpoint["q_value_network2_state_dict"])
-        self.agent = checkpoint["log_alpha"]
+        self.agent.log_alpha = checkpoint["log_alpha"]
         self.agent.q_value1_opt.load_state_dict(checkpoint["q_value1_opt_state_dict"])
         self.agent.q_value2_opt.load_state_dict(checkpoint["q_value2_opt_state_dict"])
         self.agent.policy_opt.load_state_dict(checkpoint["policy_opt_state_dict"])

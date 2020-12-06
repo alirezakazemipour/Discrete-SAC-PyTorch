@@ -9,15 +9,19 @@ from config import get_params
 def intro_env():
     for e in range(5):
         test_env.reset()
-        for _ in range(test_env._max_episode_steps):
+        d = False
+        ep_r = 0
+        while not d:
             a = test_env.env.action_space.sample()
             _, r, d, info = test_env.step(a)
+            ep_r += r
             test_env.env.render()
             time.sleep(0.005)
-            print(f"reward: {r}")
+            print(f"reward: {np.sign(r)}")
             print(info)
             if d:
                 break
+        print("episode reward: ", ep_r)
     test_env.close()
     exit(0)
 
@@ -34,7 +38,6 @@ if __name__ == "__main__":
         intro_env()
 
     env = make_atari(params["env_name"])
-    env.seed(int(time.time()))
 
     agent = SAC(**params)
     logger = Logger(agent, **params)
@@ -42,6 +45,7 @@ if __name__ == "__main__":
     if not params["train_from_scratch"]:
         episode = logger.load_weights()
         agent.hard_update_target_network()
+        agent.alpha = agent.log_alpha.exp()
         min_episode = episode
 
         print("Keep training from previous run.")
@@ -66,6 +70,9 @@ if __name__ == "__main__":
                 stacked_states = stack_states(stacked_states, next_state, False)
                 reward = np.sign(reward)
                 agent.store(stacked_states_copy, action, reward, stacked_states, done)
+                if done:
+                    state = env.reset()
+                    stacked_states = stack_states(stacked_states, state, True)
             else:
                 stacked_states_copy = stacked_states.copy()
                 action = agent.choose_action(stacked_states_copy)
