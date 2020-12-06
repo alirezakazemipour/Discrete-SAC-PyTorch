@@ -40,10 +40,9 @@ if __name__ == "__main__":
     logger = Logger(agent, **params)
 
     if not params["train_from_scratch"]:
-        chekpoint = logger.load_weights()
-        agent.policy_network.load_state_dict(chekpoint["policy_network_state_dict"])
+        episode = logger.load_weights()
         agent.hard_update_target_network()
-        min_episode = chekpoint["episode"]
+        min_episode = episode
 
         print("Keep training from previous run.")
     else:

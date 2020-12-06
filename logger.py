@@ -113,8 +113,15 @@ class Logger:
             writer.add_scalar("Policy Loss", policy_loss, episode)
             writer.add_scalar("Alpha", self.agent.alpha.item(), episode)
 
-    def save_weights(self, episode, ):
-        torch.save({"online_model_state_dict": self.agent.policy_network.state_dict(),
+    def save_weights(self, episode):
+        torch.save({"policy_network_state_dict": self.agent.policy_network.state_dict(),
+                    "q_value_network1_state_dict": self.agent.q_value_network1.state_dict(),
+                    "q_value_network2_state_dict": self.agent.q_value_network2.state_dict(),
+                    "log_alpha": self.agent.log_alpha,
+                    "q_value1_opt_state_dict": self.agent.q_value1_opt.state_dict(),
+                    "q_value2_opt_state_dict": self.agent.q_value2_opt.state_dict(),
+                    "policy_opt_state_dict": self.agent.policy_opt.state_dict(),
+                    "alpha_opt_state_dict": self.agent.alpha_opt.state_dict(),
                     "episode": episode},
                    "Models/" + self.log_dir + "/params.pth")
 
@@ -123,4 +130,13 @@ class Logger:
         model_dir.sort()
         checkpoint = torch.load(model_dir[-1] + "/params.pth")
         self.log_dir = model_dir[-1].split(os.sep)[-1]
-        return checkpoint
+        self.agent.policy_network.load_state_dict(checkpoint["policy_network_state_dict"])
+        self.agent.q_value_network1.load_state_dict(checkpoint["q_value_network1_state_dict"])
+        self.agent.q_value_network2.load_state_dict(checkpoint["q_value_network2_state_dict"])
+        self.agent = checkpoint["log_alpha"]
+        self.agent.q_value1_opt.load_state_dict(checkpoint["q_value1_opt_state_dict"])
+        self.agent.q_value2_opt.load_state_dict(checkpoint["q_value2_opt_state_dict"])
+        self.agent.policy_opt.load_state_dict(checkpoint["policy_opt_state_dict"])
+        self.agent.alpha_opt.load_state_dict(checkpoint["alpha_opt_state_dict"])
+
+        return checkpoint["episode"]
