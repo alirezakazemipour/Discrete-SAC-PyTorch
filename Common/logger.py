@@ -32,8 +32,8 @@ class Logger:
 
     @staticmethod
     def create_wights_folder(dir):
-        if not os.path.exists("models"):
-            os.mkdir("models")
+        if not os.path.exists("../models"):
+            os.mkdir("../models")
         os.mkdir("models/" + dir)
 
     def log_params(self):

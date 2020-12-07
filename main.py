@@ -1,9 +1,9 @@
-from agent import SAC
+from Brain.agent import SAC
 import time
-from play import Play
-from utils import *
-from logger import Logger
-from config import get_params
+from Common.play import Play
+from Common.utils import *
+from Common.logger import Logger
+from Common.config import get_params
 
 
 def intro_env():

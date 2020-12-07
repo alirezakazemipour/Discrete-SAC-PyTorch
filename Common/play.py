@@ -1,7 +1,7 @@
 import torch
 from torch import device
 import time
-from utils import *
+from Common.utils import *
 
 
 class Play:

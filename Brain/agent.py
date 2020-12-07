@@ -1,7 +1,7 @@
 import numpy as np
-from model import PolicyNetwork, QValueNetwork
+from Brain.model import PolicyNetwork, QValueNetwork
 import torch
-from replay_memory import Memory, Transition
+from Memory.replay_memory import Memory, Transition
 from torch import from_numpy
 from torch.optim.adam import Adam
 from torch.nn import functional as F
