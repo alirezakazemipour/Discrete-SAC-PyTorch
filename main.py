@@ -42,18 +42,18 @@ if __name__ == "__main__":
     agent = SAC(**params)
     logger = Logger(agent, **params)
 
-    if not params["train_from_scratch"]:
-        episode = logger.load_weights()
-        agent.hard_update_target_network()
-        agent.alpha = agent.log_alpha.exp()
-        min_episode = episode
-
-        print("Keep training from previous run.")
-    else:
-        min_episode = 0
-        print("Train from scratch.")
-
     if params["do_train"]:
+
+        if not params["train_from_scratch"]:
+            episode = logger.load_weights()
+            agent.hard_update_target_network()
+            agent.alpha = agent.log_alpha.exp()
+            min_episode = episode
+            print("Keep training from previous run.")
+
+        else:
+            min_episode = 0
+            print("Train from scratch.")
 
         stacked_states = np.zeros(shape=params["state_shape"], dtype=np.uint8)
         state = env.reset()

@@ -17,7 +17,6 @@ class Logger:
         self.start_time = 0
         self.duration = 0
         self.running_reward = 0
-        self.prev_running_reward = 0
         self.running_alpha_loss = 0
         self.running_q_loss = 0
         self.running_policy_loss = 0
@@ -33,9 +32,9 @@ class Logger:
 
     @staticmethod
     def create_wights_folder(dir):
-        if not os.path.exists("Models"):
-            os.mkdir("Models")
-        os.mkdir("Models/" + dir)
+        if not os.path.exists("models"):
+            os.mkdir("models")
+        os.mkdir("models/" + dir)
 
     def log_params(self):
         with SummaryWriter("Logs/" + self.log_dir) as writer:
@@ -73,8 +72,7 @@ class Logger:
         memory = psutil.virtual_memory()
         assert self.to_gb(memory.used) < 0.98 * self.to_gb(memory.total)
 
-        if (episode % (self.config["interval"] // 3)) and self.running_reward > self.prev_running_reward == 0:
-            self.prev_running_reward = self.running_reward
+        if episode % (self.config["interval"] // 3):
             self.save_weights(episode)
 
         if episode % self.config["interval"] == 0:
@@ -125,10 +123,10 @@ class Logger:
                     "policy_opt_state_dict": self.agent.policy_opt.state_dict(),
                     "alpha_opt_state_dict": self.agent.alpha_opt.state_dict(),
                     "episode": episode},
-                   "Models/" + self.log_dir + "/params.pth")
+                   "models/" + self.log_dir + "/params.pth")
 
     def load_weights(self):
-        model_dir = glob.glob("Models/*")
+        model_dir = glob.glob("models/*")
         model_dir.sort()
         checkpoint = torch.load(model_dir[-1] + "/params.pth")
         self.log_dir = model_dir[-1].split(os.sep)[-1]

@@ -26,7 +26,7 @@ class Play:
 
             while not done:
                 stacked_frames_copy = stacked_states.copy()
-                action = self.agent.choose_action(stacked_frames_copy, do_greedy=False)
+                action = self.agent.choose_action(stacked_frames_copy, do_greedy=True)
                 next_state, r, done, _ = self.env.step(action)
                 stacked_states = stack_states(stacked_states, next_state, False)
                 self.env.render()
