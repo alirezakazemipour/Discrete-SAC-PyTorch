@@ -12,7 +12,7 @@ Continuous SAC| Discrete SAC
 
 ## Demo
 Non-Greedy Stochastic Action Selection| Greedy Action Selection
-:-----------------------:|:-----------------------:|:-----------------------:|
+:-----------------------:|:-----------------------:|
 ![](demo/non-greedy.gif)| ![](demo/greedy.gif)
 
 ## Results
