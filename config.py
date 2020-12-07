@@ -10,7 +10,7 @@ def get_params():
     parser.add_argument("--interval", default=10, type=int,
                         help="The interval specifies how often different parameters should be saved and printed,"
                              " counted by episodes.")
-    parser.add_argument("--do_train", action="store_false",
+    parser.add_argument("--do_train", action="store_true",
                         help="The flag determines whether to train the agent or play with it.")
     parser.add_argument("--train_from_scratch", action="store_false",
                         help="The flag determines whether to train from scratch or continue previous tries.")

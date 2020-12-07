@@ -100,5 +100,6 @@ if __name__ == "__main__":
                     episode_loss = 0
                     logger.on()
 
-    player = Play(env, agent)
+    logger.load_weights()
+    player = Play(env, agent, params)
     player.evaluate()
