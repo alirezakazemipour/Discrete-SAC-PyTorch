@@ -17,6 +17,7 @@ class Logger:
         self.start_time = 0
         self.duration = 0
         self.running_reward = 0
+        self.prev_running_reward = 0
         self.running_alpha_loss = 0
         self.running_q_loss = 0
         self.running_policy_loss = 0
@@ -72,7 +73,8 @@ class Logger:
         memory = psutil.virtual_memory()
         assert self.to_gb(memory.used) < 0.98 * self.to_gb(memory.total)
 
-        if episode % (self.config["interval"] // 3) == 0:
+        if (episode % (self.config["interval"] // 3)) and self.running_reward > self.prev_running_reward == 0:
+            self.prev_running_reward = self.running_reward
             self.save_weights(episode)
 
         if episode % self.config["interval"] == 0:

@@ -86,9 +86,6 @@ if __name__ == "__main__":
                 if step % params["train_period"] == 0:
                     alpha_loss, q_loss, policy_loss = agent.train()
 
-                if step % params["fixed_network_update_freq"] == 0:
-                    agent.hard_update_target_network()
-
                 if done:
                     logger.off()
                     logger.log(episode, episode_reward, alpha_loss, q_loss, policy_loss , step)

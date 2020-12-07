@@ -42,7 +42,7 @@ class SAC:
         self.policy_opt = Adam(self.policy_network.parameters(), lr=self.lr)
         self.alpha_opt = Adam([self.log_alpha], lr=self.lr)
 
-        # self.update_counter = 0
+        self.update_counter = 0
 
     def store(self, state, action, reward, next_state, done):
         state = from_numpy(state).byte().to("cpu")
@@ -114,21 +114,24 @@ class SAC:
             alpha_loss.backward()
             self.alpha_opt.step()
 
-            # self.update_counter += 1
+            self.update_counter += 1
 
             self.alpha = self.log_alpha.exp()
 
-            # if self.update_counter % 8000 == 0:
-            #     self.hard_update_target_network()
+            if self.update_counter % self.config["fixed_network_update_freq"] == 0:
+                self.hard_update_target_network()
 
             return alpha_loss.item(), 0.5 * (q1_loss + q2_loss).item(), policy_loss.item()
 
-    def choose_action(self, states):
+    def choose_action(self, states, do_greedy=False):
         states = np.expand_dims(states, axis=0)
         states = from_numpy(states).byte().to(self.device)
         with torch.no_grad():
-            dist, _ = self.policy_network(states)
-            action = dist.sample()
+            dist, p = self.policy_network(states)
+            if do_greedy:
+                action = p.argmax(-1)
+            else:
+                action = dist.sample()
         return action.detach().cpu().numpy()[0]
 
     def hard_update_target_network(self):

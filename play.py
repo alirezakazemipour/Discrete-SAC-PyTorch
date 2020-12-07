@@ -8,7 +8,7 @@ class Play:
     def __init__(self, env, agent, params, max_episode=4):
         self.env = env
         self.params = params
-        # self.env = gym.wrappers.Monitor(env, "./vid", video_callable=lambda episode_id: True, force=True)
+        self.env = gym.wrappers.Monitor(env, "./vid", video_callable=lambda episode_id: True, force=True)
         self.max_episode = max_episode
         self.agent = agent
         self.agent.set_to_eval_mode()
@@ -26,16 +26,14 @@ class Play:
 
             while not done:
                 stacked_frames_copy = stacked_states.copy()
-                action = self.agent.choose_action(stacked_frames_copy)
+                action = self.agent.choose_action(stacked_frames_copy, do_greedy=False)
                 next_state, r, done, _ = self.env.step(action)
                 stacked_states = stack_states(stacked_states, next_state, False)
                 self.env.render()
                 time.sleep(0.01)
                 episode_reward += r
-                # self.VideoWriter.write(cv2.cvtColor(next_state, cv2.COLOR_RGB2BGR))
             total_reward += episode_reward
 
         print("Total episode reward:", total_reward / self.max_episode)
         self.env.close()
-        # self.VideoWriter.release()
         cv2.destroyAllWindows()
