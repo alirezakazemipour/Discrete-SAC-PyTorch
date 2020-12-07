@@ -29,7 +29,7 @@ def intro_env():
 if __name__ == "__main__":
     params = get_params()
 
-    test_env = make_atari(params["env_name"])
+    test_env = make_atari(params["env_name"], episodic_life=False)
     params.update({"n_actions": test_env.action_space.n})
 
     print(f"Number of actions: {params['n_actions']}")
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     if params["do_intro_env"]:
         intro_env()
 
-    env = make_atari(params["env_name"])
+    env = make_atari(params["env_name"], episodic_life=False)
 
     agent = SAC(**params)
     logger = Logger(agent, **params)

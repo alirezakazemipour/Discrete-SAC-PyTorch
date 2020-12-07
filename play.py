@@ -26,6 +26,6 @@ class Play:
                 s_, r, done, _ = self.env.step(action)
                 episode_reward += r
                 s = s_
-                self.env.render(mode="human")
+                self.env.render()
                 time.sleep(0.03)
             print(f"episode reward:{episode_reward:3.3f}")
