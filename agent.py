@@ -42,7 +42,7 @@ class SAC:
         self.policy_opt = Adam(self.policy_network.parameters(), lr=self.lr)
         self.alpha_opt = Adam([self.log_alpha], lr=self.lr)
 
-        self.update_counter = 0
+        # self.update_counter = 0
 
     def store(self, state, action, reward, next_state, done):
         state = from_numpy(state).byte().to("cpu")
@@ -114,12 +114,12 @@ class SAC:
             alpha_loss.backward()
             self.alpha_opt.step()
 
-            self.update_counter += 1
+            # self.update_counter += 1
 
             self.alpha = self.log_alpha.exp()
 
-            if self.update_counter % 8000 == 0:
-                self.hard_update_target_network()
+            # if self.update_counter % 8000 == 0:
+            #     self.hard_update_target_network()
 
             return alpha_loss.item(), 0.5 * (q1_loss + q2_loss).item(), policy_loss.item()
 

@@ -28,6 +28,7 @@ def get_params():
                       "gamma": 0.99,
                       "initial_random_steps": 20000,
                       "train_period": 4,
+                      "fixed_network_update_freq": 8000
                       }
     # endregion
     total_params = {**vars(parser_params), **default_params}
