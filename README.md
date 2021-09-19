@@ -4,6 +4,7 @@
 >This repository is a PyTorch implementation of the Discrete SAC on MsPacmanNoFrameskip-v4 environment.
 
 [Soft Actor-Critic Algorithms and Applications ](https://arxiv.org/pdf/1812.05905.pdf) is known to be the state-of-the-art reinforcement algorithm for continuous action settings, however to make it applicable for discrete action settings, some modifications should be carried on its derivation:  
+
 Continuous SAC| Discrete SAC
 :-----------------------:|:-----------------------:|
 ![](equations/continuous_v.png)| ![](equations/discrete_v.png)
